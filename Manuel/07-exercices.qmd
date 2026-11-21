@@ -1,0 +1,195 @@
+# Exercices de synthèse {#sec-exercices}
+
+```{r}
+#| include: false
+source("_common.R")
+intv <- function(v) paste0("[", fmt(v[1]), " ; ", fmt(v[2]), "]")
+p15 <- lapply(priors, posterieure, faces = 15, n = 20)
+larg <- function(n) diff(qbeta(c(.025, .975), 1 + n / 2, 1 + n / 2)); nn <- seq(2, 1000, 2); nmin <- nn[which(sapply(nn, larg) < .1)[1]]
+e30 <- experience(2030L, "mystere"); for (l in c(10, 10, 100)) e30$lancer(l); s30 <- e30$etat(); q30 <- c(1 + s30$faces, 1 + s30$n - s30$faces)
+```
+
+::: {.callout-tip title="Comment utiliser ce chapitre"}
+Les exercices 1 à 12 reprennent, dans l’ordre, les notions des chapitres 1 à 6 ; les exercices 13 à 16 les combinent. Essayez chaque exercice avant d’ouvrir la solution. L’exercice 15 se fait dans l’application ; ses résultats de référence supposent la graine et la suite de séries indiquées.
+:::
+
+| Notion | Chapitre | Exercices |
+|:--|:-:|:--|
+| A priori, moyenne, dispersion | 1 | 2 |
+| Mise à jour, vraisemblance, poids | 2 | 1, 6, 7, 8, 16 |
+| Densité, intervalle, seuil, prévision | 3 | 3, 4, 9, 10, 14 |
+| Sensibilité à l’a priori | 4 | 5, 13 |
+| Reproductibilité, limites | 5, 6 | 11, 12, 15 |
+
+: Correspondance entre les exercices et les chapitres {#tbl-exercices}
+
+## Exercice 1 — Mise à jour
+
+On part d’un a priori bêta(1, 1) et on observe 7 Face et 3 Pile. Donnez l’a posteriori, sa moyenne et la proportion observée.
+
+::: {.callout-note collapse="true" title="Solution"}
+La distribution devient bêta(8, 4), de moyenne $8/12 \approx 0{,}667$. La proportion observée est $7/10 = 0{,}700$. Les deux valeurs diffèrent parce que la moyenne a posteriori tient aussi compte de l’a priori.
+:::
+
+## Exercice 2 — Même moyenne
+
+Les a priori bêta(1, 1) et bêta(8, 8) ont-ils la même moyenne ? Sont-ils identiques ?
+
+::: {.callout-note collapse="true" title="Solution"}
+Leur moyenne est 0,5 dans les deux cas. Ils ne sont pas identiques : bêta(8, 8) concentre davantage de densité près de 0,5 (écart-type `r fmt(sd_beta(c(8, 8)))` contre `r fmt(sd_beta(c(1, 1)))`) et possède une somme de paramètres plus grande, donc plus de poids dans la moyenne a posteriori.
+:::
+
+## Exercice 3 — Aire et densité
+
+Une densité a posteriori atteint 4 en $\theta = 0{,}6$. Est-ce une probabilité de 400 % que $\theta$ soit exactement égal à 0,6 ?
+
+::: {.callout-note collapse="true" title="Solution"}
+Non. Une densité peut dépasser 1. Pour une distribution continue, la probabilité d’une valeur exacte est nulle ; la probabilité d’un intervalle est l’aire sous la courbe sur cet intervalle.
+:::
+
+## Exercice 4 — Une interprétation
+
+Supposons que $P(\theta > 0{,}5 \mid D) = 0{,}80$. Cette valeur est-elle la probabilité que le prochain lancer donne Face ?
+
+::: {.callout-note collapse="true" title="Solution"}
+Non. Elle décrit l’incertitude a posteriori sur l’événement $\theta > 0{,}5$. Dans ce modèle, la probabilité prédictive de Face au prochain lancer est la moyenne a posteriori de $\theta$.
+:::
+
+## Exercice 5 — Sensibilité
+
+Deux personnes utilisent les mêmes observations et des a priori différents. Leurs résultats doivent-ils être identiques ? Que s’attend-on à observer lorsque le nombre de lancers augmente ?
+
+::: {.callout-note collapse="true" title="Solution"}
+Leurs résultats peuvent différer, surtout avec peu de données. Pour les a priori fixes de l’application, leur influence relative diminue avec les lancers ; les conclusions tendent à se rapprocher. Il reste utile d’examiner la dispersion, pas seulement les moyennes.
+:::
+
+## Exercice 6 — Une mise à jour par étapes
+
+Vous partez de bêta(2, 2). Vous observez d’abord 3 Face et 1 Pile, puis 2 Face et 4 Pile. Donnez la distribution après chaque série. Vérifiez le résultat à partir des données cumulées.
+
+::: {.callout-note collapse="true" title="Solution"}
+Après la première série, on obtient bêta(5, 3). Après la deuxième, on ajoute seulement les nouveaux résultats : bêta(7, 7). Les données cumulées comprennent 5 Face et 5 Pile ; à partir de l’a priori initial, on obtient aussi bêta(2 + 5, 2 + 5), soit bêta(7, 7), de moyenne 0,5. Il ne faut pas ajouter deux fois la première série.
+:::
+
+## Exercice 7 — Le poids de l’a priori
+
+Une personne choisit bêta(50, 50), puis observe 60 Face en 100 lancers. Calculez le poids de l’a priori dans la moyenne a posteriori et cette moyenne. Comparez avec l’a priori uniforme sur les mêmes données.
+
+::: {.callout-note collapse="true" title="Solution"}
+Pour bêta(50, 50), le poids vaut $100/(100 + 100) = 0{,}5$. La moyenne est $(50 + 60)/200 = 0{,}55$, soit la moyenne de 0,5 et 0,6. Avec bêta(1, 1), elle vaut $(1 + 60)/(2 + 100) = 61/102 \approx `r nbm(61/102)`$. L’écart illustre la sensibilité au point de départ pour ces données ; il ne désigne pas à lui seul un a priori correct.
+:::
+
+## Exercice 8 — Séquence ou nombre de Face ?
+
+On observe une séquence de 7 Face et 3 Pile. Comparez sa vraisemblance pour $\theta = 0{,}5$ et $\theta = 0{,}7$. Qu’arrive-t-il au rapport si l’on considère plutôt le nombre de Face sans leur ordre ?
+
+::: {.callout-note collapse="true" title="Solution"}
+Les vraisemblances de la séquence sont environ 0,000977 et 0,002224 ; la seconde vaut environ 2,28 fois la première. Pour le seul nombre de Face, chacune est multipliée par $\binom{10}{7} = 120$. Le rapport demeure identique, puisque ce facteur ne dépend pas de $\theta$.
+:::
+
+## Exercice 9 — Deux types d’intervalles
+
+Sans changer les observations, vous remplacez un a priori uniforme par bêta(50, 50). Que devrait-il arriver à l’intervalle crédible ? À l’intervalle de Clopper-Pearson ?
+
+::: {.callout-note collapse="true" title="Solution"}
+L’intervalle crédible est recalculé et peut changer parce qu’il dépend de l’a priori. L’intervalle de Clopper-Pearson demeure identique pour les mêmes observations et le même niveau. Leur comparaison demande ensuite de respecter leurs interprétations respectives (chapitre 3).
+:::
+
+## Exercice 10 — Prévoir le prochain lancer
+
+Avec l’a priori uniforme, on a observé 7 Face et 3 Pile. Quelle est la probabilité prédictive de Face au prochain lancer ? Est-ce nécessairement la même chose que $P(\theta > 0{,}5 \mid D)$ ?
+
+::: {.callout-note collapse="true" title="Solution"}
+La règle de succession donne $(7 + 1)/(10 + 2) = 8/12 \approx 0{,}667$. Cette probabilité porte sur le prochain résultat. $P(\theta > 0{,}5 \mid D)$ porte sur une propriété de la probabilité inconnue et représente une aire de la distribution a posteriori ; ici, elle vaut `r pct(pbeta(.5, 8, 4, lower.tail = FALSE))`. Ce sont deux questions distinctes, et deux nombres différents.
+:::
+
+## Exercice 11 — Valeur réelle et intervalle
+
+Dans une simulation, la valeur révélée de $\theta$ se trouve hors de l’intervalle crédible à 95 %. Un étudiant conclut : « Le calcul est nécessairement erroné. » Discutez.
+
+::: {.callout-note collapse="true" title="Solution"}
+Cette conclusion ne suit pas. L’intervalle contient 95 % de la distribution a posteriori selon les données, l’a priori et le modèle ; il n’est pas garanti qu’une valeur simulée particulière soit entre ses bornes. Dans l’atelier du chapitre 6, 2 pièces mystères sur 10 tombent hors de leur intervalle. On peut vérifier le calcul et les hypothèses, mais une seule non-inclusion ne démontre pas une erreur.
+:::
+
+## Exercice 12 — Reproduire et varier
+
+Vous avez utilisé une graine non nulle et ajouté successivement 10, 10 et 100 lancers. Que faut-il conserver pour reproduire cette expérience ? Pourquoi la refaire aussi avec une autre graine ?
+
+::: {.callout-note collapse="true" title="Solution"}
+Conservez la graine, la version de l’application, les réglages et la même suite de clics, notamment les tailles de séries. Une autre graine donne une autre simulation et aide à voir la variabilité des résultats. Reproduire un exemple ne démontre pas qu’il est représentatif de toutes les expériences.
+:::
+
+## Exercice 13 — Une analyse de sensibilité complète
+
+Une pièce a donné 15 Face en 20 lancers. Pour chacun des quatre a priori de l’application, donnez l’a posteriori, sa moyenne, son intervalle crédible et $P(\theta > 0{,}5 \mid D)$. La conclusion « la pièce favorise Face » est-elle robuste ?
+
+::: {.callout-note collapse="true" title="Solution"}
+```{r}
+knitr::kable(data.frame(`A priori` = names(priors), `A posteriori` = sapply(p15, beta_txt),
+  Moyenne = sapply(p15, function(q) fmt(moyenne_beta(q))), `Intervalle crédible` = sapply(p15, function(q) intv(ic_beta(q))),
+  `P(θ > 0,5)` = sapply(p15, function(q) pct(pbeta(.5, q[1], q[2], lower.tail = FALSE))), check.names = FALSE),
+  align = "llrcr", row.names = FALSE)
+```
+
+Trois a priori donnent plus de 95 %, mais Pile favorisée ne donne que `r pct(pbeta(.5, p15[[4]][1], p15[[4]][2], lower.tail = FALSE))`, et deux intervalles contiennent encore 0,5. La conclusion penche nettement vers Face, mais elle n’est pas encore tout à fait robuste : il faut la présenter avec cette réserve, ou recueillir davantage de lancers.
+:::
+
+## Exercice 14 — Combien de lancers ?
+
+Avec l’a priori uniforme, combien de lancers faut-il, environ, pour que l’intervalle crédible à 95 % ait une largeur inférieure à 0,1 lorsque la proportion observée est voisine de 0,5 ? Pourquoi faut-il moins de lancers pour une pièce à 0,9 ?
+
+::: {.callout-note collapse="true" title="Solution"}
+Il faut environ `r nmin` lancers (avec exactement la moitié de Face). L’approximation $2 \times 1{,}96 \times \sqrt{0{,}25/n} < 0{,}1$ donne $n > 384$, une valeur très proche. La dispersion d’une proportion, $\sqrt{\theta(1 - \theta)/n}$, est la plus grande à $\theta = 0{,}5$ : pour une pièce à 0,9, $\theta(1 - \theta) = 0{,}09$ au lieu de 0,25, et il faut environ trois fois moins de lancers.
+:::
+
+## Exercice 15 — Une pièce mystère, du début à la fin (dans l’application)
+
+Dans l’application, choisissez **Pièce mystère**, l’a priori uniforme et la graine 2030. Lancez 10, 10, puis 100 fois. **Avant** de révéler la pièce, rédigez une conclusion complète : estimation, intervalle, probabilité que la pièce favorise Face, et conditions de validité. Révélez ensuite la pièce.
+
+::: {.callout-note collapse="true" title="Solution (graine 2030)"}
+On obtient `r s30$faces` Face en `r s30$n` lancers : `r beta_txt(q30)`, moyenne `r fmt(moyenne_beta(q30))`, intervalle crédible `r intv(ic_beta(q30))`, $P(\theta > 0{,}5 \mid D) > 99{,}9\,\%$.
+
+Conclusion possible : « Selon un modèle de lancers indépendants de probabilité constante et un a priori uniforme, la probabilité de Face de cette pièce se situe entre `r fmt(ic_beta(q30)[1])` et `r fmt(ic_beta(q30)[2])` avec une probabilité a posteriori de 95 % ; il est pratiquement certain qu’elle favorise Face. »
+
+La pièce révélée vaut `r fmt(e30$theta())`, dans l’intervalle.
+:::
+
+## Exercice 16 — Deux Face de suite
+
+Avec l’a priori uniforme, après 7 Face et 3 Pile, quelle est la probabilité que les **deux** prochains lancers donnent Face ? Est-ce le carré de la probabilité du prochain Face ?
+
+::: {.callout-note collapse="true" title="Solution"}
+On met à jour pas à pas. Le premier Face a une probabilité de $8/12$ ; s’il se produit, l’a posteriori devient bêta(9, 4), et le second Face a une probabilité de $9/13$. D’où
+$$\frac{8}{12} \times \frac{9}{13} \approx `r nbm(8/12 * 9/13, 4)`,$$
+un peu plus que $(8/12)^2 \approx `r nbm((8/12)^2, 4)`$. Les deux prochains lancers ne sont pas indépendants **pour qui ignore $\theta$** : un premier Face rend un second Face plus probable (chapitre 6).
+:::
+
+## Quiz de synthèse
+
+1. Avec bêta(2, 2) et 3 Face sur 4 lancers, l’a posteriori est :
+   a) bêta(3, 1) ; b) bêta(5, 3) ; c) bêta(5, 5).
+2. La moyenne a posteriori avec bêta(1, 1) après 7 Face en 10 lancers vaut :
+   a) 0,700 ; b) 0,667 ; c) 0,583.
+3. Une densité a posteriori de 4 en $\theta = 0{,}6$ signifie :
+   a) une probabilité de 4 ; b) une hauteur de courbe, sans probabilité ponctuelle ; c) une erreur.
+4. Le poids de bêta(50, 50) après 100 lancers vaut :
+   a) 50 % ; b) 2 % ; c) 100 %.
+5. Changer l’a priori modifie :
+   a) les deux intervalles ; b) seulement l’intervalle crédible ; c) seulement l’intervalle de Clopper-Pearson.
+6. Une pièce révélée hors de l’intervalle crédible prouve :
+   a) une erreur de calcul ; b) un mauvais a priori ; c) rien à elle seule.
+7. Une conclusion robuste :
+   a) ne change pas avec des a priori raisonnables ; b) repose sur l’a priori uniforme ; c) a un intervalle étroit.
+8. Pour qui ignore $\theta$, deux lancers successifs sont :
+   a) indépendants ; b) liés par l’incertitude sur $\theta$ ; c) toujours identiques.
+
+::: {.callout-tip collapse="true" title="Réponses du quiz"}
+1. **b.**
+2. **b.**
+3. **b.**
+4. **a.**
+5. **b.**
+6. **c.**
+7. **a.**
+8. **b.**
+:::

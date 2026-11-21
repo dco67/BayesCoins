@@ -1,0 +1,67 @@
+project:
+  type: book
+
+lang: fr
+bibliography: references.bib
+nocite: |
+  @*
+
+execute:
+  echo: false
+  warning: false
+  message: false
+  freeze: auto
+
+crossref:
+  fig-title: Figure
+  tbl-title: Tableau
+  fig-prefix: figure
+  tbl-prefix: tableau
+  sec-prefix: section
+
+filters:
+  - outils/emoji-pdf.lua
+
+book:
+  title: "Comprendre l’inférence bayésienne"
+  subtitle: "Une pièce de monnaie pour apprendre à partir des données"
+  author: "Daniel Coulombe"
+  date: "2026"
+  chapters:
+    - index.qmd
+    - 01-apriori.qmd
+    - 02-mise-a-jour.qmd
+    - 03-interpreter.qmd
+    - 04-comparer.qmd
+    - 05-missions.qmd
+    - 06-limites.qmd
+    - 07-exercices.qmd
+    - references.qmd
+  appendices:
+    - annexe.qmd
+
+format:
+  html:
+    css: styles.css
+    theme: cosmo
+    toc: true
+    number-sections: true
+    fig-align: center
+  pdf:
+    pdf-engine: lualatex
+    include-in-header:
+      text: |
+        \usepackage{graphicx}
+        \usepackage{eso-pic}
+        \usepackage{newunicodechar}
+        \newunicodechar{ᵉ}{\textsuperscript{e}}
+    include-before-body: cover.tex
+    documentclass: scrreprt
+    papersize: letter
+    geometry: margin=1in
+    number-sections: true
+    fig-pos: "H"
+  epub:
+    cover-image: cover.png
+    toc: true
+    number-sections: true

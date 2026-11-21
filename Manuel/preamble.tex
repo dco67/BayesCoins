@@ -1,0 +1,27 @@
+% preamble.tex — en-tête LaTeX du manuel SimRandSamp (sortie PDF, LuaLaTeX)
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{eso-pic}
+\usepackage{float}
+\usepackage{newunicodechar}
+
+% Espace fine insécable (séparateur de milliers) : rendue par une espace fine,
+% car toutes les polices ne possèdent pas ce caractère.
+\newunicodechar{^^^^202f}{\,}
+
+% Les lettres grecques et indices du texte courant (σ, β₀…) sont convertis
+% en commandes LaTeX par le filtre outils/emoji-pdf.lua.
+
+% Exposant « e » des ordinaux (5e, 95e).
+\newunicodechar{^^^^1d49}{\textsuperscript{e}}
+\newunicodechar{^^^^2082}{\ensuremath{_2}}
+\newunicodechar{^^^^2208}{\ensuremath{\in}}
+
+% Légendes des figures et tableaux un peu plus petites.
+\addtokomafont{caption}{\small}
+\setkomafont{captionlabel}{\small\bfseries}
+
+% Callouts : éviter qu'un encadré commence en bas de page.
+\widowpenalty=10000
+\clubpenalty=10000

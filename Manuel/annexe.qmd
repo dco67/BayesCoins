@@ -1,0 +1,127 @@
+# Annexe : quelques détails sur la loi bêta {#sec-annexe}
+
+```{r}
+#| include: false
+source("_common.R")
+q320 <- posterieure(c(1, 1), H$faces[5], H$n[5]); m320 <- moyenne_beta(q320)
+k <- 0:10; pbb <- choose(10, k) * beta(8 + k, 4 + 10 - k) / beta(8, 4); pbi <- dbinom(k, 10, 8 / 12)
+```
+
+Cette annexe est facultative lors d’une première lecture. Elle rassemble les formules utilisées par l’application et quelques compléments.
+
+## La loi bêta
+
+Pour $\alpha, \beta > 0$, la densité bêta est
+
+$$p(\theta) = \frac{\theta^{\alpha-1}(1-\theta)^{\beta-1}}{B(\alpha, \beta)}, \qquad 0 < \theta < 1,$$
+
+où $B(\alpha, \beta)$ est la fonction bêta, qui assure que l’aire totale vaut 1. Ses principales caractéristiques sont :
+
+| Caractéristique | Formule | bêta(8, 4) |
+|:--|:-:|:-:|
+| Moyenne | $\dfrac{\alpha}{\alpha+\beta}$ | `r fmt(8/12)` |
+| Mode (si $\alpha, \beta > 1$) | $\dfrac{\alpha-1}{\alpha+\beta-2}$ | `r fmt(7/10)` |
+| Variance | $\dfrac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}$ | `r fmt(sd_beta(c(8, 4))^2, 4)` |
+| Écart-type | racine carrée de la variance | `r fmt(sd_beta(c(8, 4)))` |
+
+: Moyenne, mode et dispersion d’une loi bêta {#tbl-beta}
+
+Le **mode** d’un a posteriori bêta($1 + F$, $1 + P$) obtenu avec l’a priori uniforme est $F/n$, la proportion observée : c’est la valeur où la densité est la plus haute. La moyenne, elle, est légèrement tirée vers 0,5.
+
+## Dérivation de la mise à jour
+
+La densité a priori est proportionnelle à $\theta^{\alpha-1}(1-\theta)^{\beta-1}$. La vraisemblance d’une séquence contenant $F$ Face et $P$ Pile est $\theta^F(1-\theta)^P$. En multipliant ces deux expressions, on additionne les exposants :
+
+$$p(\theta)\,L(\theta) \propto \theta^{\alpha+F-1}(1-\theta)^{\beta+P-1}.$$
+
+Cette forme est le noyau d’une densité bêta de paramètres $A = \alpha + F$ et $B = \beta + P$. Après normalisation, on obtient la distribution a posteriori bêta($A$, $B$). Cette propriété est appelée **conjugaison** : elle simplifie la mise à jour parce que l’a priori et l’a posteriori appartiennent à la même famille. La conjugaison est une propriété mathématique commode ; elle ne justifie pas à elle seule le choix d’un a priori ou les hypothèses de l’expérience.
+
+La constante normalisatrice, c’est-à-dire la probabilité de la séquence observée en tenant compte de toutes les valeurs de $\theta$, est
+
+$$p(D) = \int_0^1 \theta^F (1-\theta)^P \, p(\theta)\, d\theta = \frac{B(\alpha+F, \beta+P)}{B(\alpha, \beta)}.$$
+
+Par exemple, avec l’a priori uniforme et les 6 Face et 4 Pile des 10 premiers lancers de la séance de référence, $p(D) = B(7, 5) \approx `r nbm(beta(7, 5) * 1e4)` \times 10^{-4}$, la valeur affichée dans **Comprendre le calcul** (@fig-app-calcul-candidat).
+
+Pour le seul nombre de Face, on multiplie cette probabilité par $\binom{n}{F}$. Les deux formulations conduisent au même a posteriori, car ce facteur ne dépend pas de $\theta$. Avec l’a priori uniforme, on obtient un résultat remarquable : $\binom{n}{F}\,B(F + 1, P + 1) = 1/(n + 1)$ pour tout $F$. Avant les lancers, **tous les nombres de Face de 0 à $n$ sont également probables** ; c’est une autre façon de lire ce que l’a priori uniforme affirme.
+
+## Dérivation de la moyenne pondérée
+
+Pour $n = F + P > 0$,
+
+$$\frac{\alpha+F}{\alpha+\beta+n} = \frac{\alpha+\beta}{\alpha+\beta+n} \cdot \frac{\alpha}{\alpha+\beta} + \frac{n}{\alpha+\beta+n} \cdot \frac{F}{n}.$$
+
+Il suffit de simplifier chaque terme du membre de droite : le premier vaut $\alpha/(\alpha+\beta+n)$, le second $F/(\alpha+\beta+n)$. Le premier terme est le poids de l’a priori multiplié par sa moyenne ; le second, le poids des données multiplié par la proportion observée. Les poids totalisent 1. Lorsque $n = 0$, la proportion $F/n$ n’est pas définie ; la moyenne a posteriori est simplement la moyenne a priori.
+
+## Dispersion et nombre de lancers
+
+Lorsque $n$ est grand devant $\alpha + \beta$, la variance a posteriori est voisine de
+
+$$\frac{\hat p\,(1 - \hat p)}{n}, \qquad \hat p = \frac{F}{n}.$$
+
+L’écart-type a posteriori diminue donc comme $1/\sqrt{n}$ : pour diviser la largeur de l’intervalle par deux, il faut environ **quatre fois** plus de lancers. Dans ce régime, la loi bêta est aussi proche d’une loi normale. Après les 320 lancers de la séance de référence, l’approximation $\text{moyenne} \pm 1{,}96 \times \text{écart-type}$ donne `r paste0("[", fmt(m320 - 1.96 * sd_beta(q320)), " ; ", fmt(m320 + 1.96 * sd_beta(q320)), "]")`, contre `r paste0("[", fmt(ic_beta(q320)[1]), " ; ", fmt(ic_beta(q320)[2]), "]")` pour l’intervalle exact. Avec peu de lancers, ou près de 0 et de 1, l’approximation est moins bonne : l’application utilise toujours les quantiles exacts.
+
+## Prévision du prochain Face
+
+Conditionnellement à $\theta$, la probabilité du prochain Face vaut $\theta$. Pour obtenir la probabilité prédictive, on fait sa moyenne sur la distribution a posteriori :
+
+$$P(\text{Face au prochain lancer} \mid D) = \int_0^1 \theta\, p(\theta \mid D)\, d\theta = E(\theta \mid D) = \frac{\alpha+F}{\alpha+\beta+n}.$$
+
+La règle de succession de Laplace en découle pour $\alpha = \beta = 1$.
+
+### Plusieurs lancers futurs
+
+La probabilité d’obtenir $k$ Face en $m$ lancers futurs suit la loi **bêta-binomiale** :
+
+$$P(k \mid D) = \binom{m}{k} \frac{B(A + k,\, B + m - k)}{B(A, B)}, \qquad k = 0, \ldots, m.$$
+
+Elle ne s’obtient pas en traitant la moyenne a posteriori comme si $\theta$ était connue. La @fig-predictive compare, après 7 Face et 3 Pile (a posteriori bêta(8, 4)), la loi bêta-binomiale pour 10 lancers futurs à la loi binomiale de paramètre $8/12$ : la première est plus étalée, parce qu’elle tient compte de l’incertitude qui reste sur $\theta$. Elle donne par exemple `r pct(sum(pbb[k <= 4]))` de chances d’obtenir 4 Face ou moins, contre `r pct(sum(pbi[k <= 4]))` pour la binomiale.
+
+```{r}
+#| label: fig-predictive
+#| fig-cap: "Nombre de Face dans 10 lancers futurs après 7 Face et 3 Pile (a priori uniforme) : loi prédictive bêta-binomiale et loi binomiale qui ignorerait l’incertitude sur θ."
+#| fig-height: 3
+dp <- rbind(data.frame(k = k, p = pbb, l = "Bêta-binomiale (prédictive)"), data.frame(k = k, p = pbi, l = "Binomiale, θ = 8/12"))
+ggplot(dp, aes(factor(k), p, fill = l)) + geom_col(position = position_dodge(width = .8), width = .75) +
+  scale_fill_manual(values = c("#125c88", "#d9a5a5"), name = NULL) + scale_y_continuous(labels = fmt_axe) +
+  labs(x = "Nombre de Face dans 10 lancers futurs", y = "Probabilité")
+```
+
+## Quantiles et probabilités de seuil
+
+Si $Q_p(A, B)$ désigne le quantile d’ordre $p$ d’une bêta($A$, $B$), l’intervalle à queues égales à 95 % est
+
+$$[Q_{0,025}(A, B) \;;\; Q_{0,975}(A, B)].$$
+
+Pour un seuil $s$, la probabilité au-delà de ce seuil s’écrit
+
+$$P(\theta > s \mid D) = 1 - G_{A,B}(s),$$
+
+où $G_{A,B}$ est la fonction de répartition de la loi bêta($A$, $B$) (on évite ici la lettre $F$, déjà utilisée pour le nombre de Face). Dans les calculs numériques, une fonction de queue supérieure directe est préférable à la soustraction lorsque la probabilité est très petite. Un intervalle crédible n’est pas unique : d’autres règles de construction existent, comme l’intervalle de plus haute densité (chapitre 3).
+
+## Poids et lancers fictifs : une analogie précise
+
+La somme $\alpha + \beta$ joue le rôle d’un effectif équivalent **dans la formule de la moyenne pondérée**. Elle ne prouve pas qu’un a priori provient effectivement de $\alpha + \beta$ observations antérieures. Selon la référence choisie pour représenter des pseudo-observations, d’autres conventions apparaissent : par exemple, partir de l’a priori bêta(1, 1) puis observer $\alpha - 1$ Face et $\beta - 1$ Pile mène à bêta($\alpha$, $\beta$), ce qui correspond à $\alpha + \beta - 2$ lancers. Il faut donc toujours préciser la convention utilisée ; ce manuel compte $\alpha + \beta$.
+
+## Reproduire les calculs dans R
+
+Les calculs de l’application se refont avec quelques fonctions de base de R. Pour la séance de référence :
+
+```r
+# Lancers : graine 2026, pièce à 0,70, séries de 10, 10, 100, 100 et 100
+set.seed(2026)
+face <- sapply(c(10, 10, 100, 100, 100), function(m) rbinom(1, m, 0.70))
+cumsum(face)                          # 6  13  82  153  222
+
+# A posteriori après 320 lancers, a priori uniforme : bêta(223, 99)
+A <- 1 + 222; B <- 1 + 98
+A / (A + B)                           # moyenne a posteriori
+qbeta(c(0.025, 0.975), A, B)          # intervalle crédible à 95 %
+pbeta(0.7, A, B, lower.tail = FALSE)  # P(theta > 0,7 | données)
+binom.test(222, 320)$conf.int         # intervalle de Clopper-Pearson
+```
+
+Ces commandes reproduisent les lancers de l’application parce que celle-ci tire, avec la même graine, les séries dans le même ordre. Pour une pièce mystère, l’application tire d’abord $\theta$ avec `runif(1, 0.05, 0.95)`, puis les séries.
+
+## Pour aller plus loin
+
+Les ouvrages de @gelman2013 et @mcelreath2020 présentent l’inférence bayésienne et les modèles probabilistes ; le premier traite en détail le modèle bêta-binomial et les lois prédictives. L’article de @clopper1934 présente les limites de confiance exactes pour une proportion binomiale, utilisées par l’application dans **Comprendre le calcul**. La bibliographie en fin de manuel fournit les références complètes.

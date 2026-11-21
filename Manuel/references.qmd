@@ -1,0 +1,24 @@
+# Références et pistes de lecture {#sec-references .unnumbered}
+
+Les titres ci-dessous offrent plusieurs portes d’entrée dans la pensée bayésienne. Les indications de niveau sont des repères pour choisir une suite de lecture, non un classement. Les ouvrages sont en anglais ; leurs exemples et leurs choix logiciels diffèrent de ceux de notre application.
+
+## Pour commencer
+
+- **Une entrée par des exemples accessibles.** @kurt2019 présente les probabilités et le raisonnement bayésien à l’aide de situations imagées et variées.
+- **Une approche par simulation et programmation.** @downey2021 utilise Python et des distributions discrètes pour construire progressivement les idées. L’auteur propose une [version en ligne gratuite](https://allendowney.github.io/ThinkBayes2/) ; une familiarité avec la programmation aide à suivre les exemples.
+
+## Pour passer à la modélisation appliquée
+
+- **Une introduction appliquée avec R.** @johnson2022 relie raisonnement, modèles et calcul, avec des activités. L’ouvrage est accessible dans une [version en ligne](https://www.bayesrulesbook.com/). Il s’adresse notamment aux lecteurs qui possèdent déjà des bases de statistique ; des notions de probabilités et de R sont utiles.
+- **Un parcours détaillé avec R, JAGS et Stan.** @kruschke2015 développe de nombreux exemples et applications. C’est une suite possible pour qui souhaite aller au-delà du modèle simple étudié ici.
+- **Une introduction aux modèles et à leur interprétation.** @mcelreath2020 développe le raisonnement de modélisation à l’aide d’exemples en R et Stan.
+
+## Pour approfondir et situer les méthodes
+
+- **Une référence approfondie.** @gelman2013 présente un ensemble plus large de méthodes et de modèles bayésiens ; certaines parties demandent une préparation mathématique et statistique plus avancée.
+- **L’article sur les limites binomiales.** @clopper1934 présente la méthode associée à l’intervalle de confiance de Clopper-Pearson évoqué dans ce manuel.
+
+Ces ressources sont proposées pour prolonger la lecture. Elles ne sont pas nécessaires pour comprendre les activités du présent manuel.
+
+::: {#refs}
+:::
